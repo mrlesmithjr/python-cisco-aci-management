@@ -39,17 +39,21 @@ def get_tenant_vrfs(apic_url, session, tenants):
     __tenants = []
     for tenant in tenants['imdata']:
         __tenant_vrf = {}
-        __tenant = tenant['fvTenant']['attributes']
+        __tenant_attributes = tenant['fvTenant']['attributes']
         get_response = session.get(
-            apic_url + "node/mo/" + __tenant['dn'] +
+            apic_url + "node/mo/" + __tenant_attributes['dn'] +
             ".json?query-target=children&target-subtree-class=fvCtx",
             verify=False)
         python_data = json.loads(get_response.text)
         for _vrf in python_data['imdata']:
             if _vrf['fvCtx']:
-                __vrf = _vrf['fvCtx']['attributes']['name']
+                __vrf_attributes = _vrf['fvCtx']['attributes']
                 __tenant_vrf.update(
-                    {"tenant": __tenant['name'], "vrf": __vrf})
+                    {"tenant": __tenant_attributes['name'],
+                     "vrf": __vrf_attributes['name'],
+                     "descr": __vrf_attributes['descr'],
+                     "pcEnfDir": __vrf_attributes['pcEnfDir'],
+                     "pcEnfPref": __vrf_attributes['pcEnfPref']})
                 __tenants.append(__tenant_vrf)
     print(json.dumps(__tenants, indent=4))
 
