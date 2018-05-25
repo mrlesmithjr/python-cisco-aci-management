@@ -17,6 +17,17 @@ __status__ = "Development"
 # http://everythingshouldbevirtual.com
 # @mrlesmithjr
 
+EXAMPLES = """
+Convert XML to JSON
+-------------------
+python aci_management.py xml_to_json --xmlFile example.xml
+
+Convert XML to YAML
+-------------------
+python aci_management.py xml_to_yaml --xmlFile example.xml
+
+"""
+
 
 def create_credentials(apic_user, apic_password):
     """Create credentials structure."""
