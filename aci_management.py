@@ -5,6 +5,8 @@
 import argparse
 import json
 import requests
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 __author__ = "Larry Smith Jr."
 __email___ = "mrlesmithjr@gmail.com"
