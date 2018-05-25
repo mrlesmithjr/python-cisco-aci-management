@@ -6,6 +6,7 @@ import argparse
 import json
 import requests
 import xmltodict
+import yaml
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -35,6 +36,9 @@ def decide_action(apic_url, session, args):
         get_tenants_complete_info(apic_url, session)
     if args.action == "xml_to_json":
         xml_to_json(args)
+    if args.action == "xml_to_yaml":
+        __doc = xml_to_json(args)
+        xml_to_yaml(__doc)
 
 
 def get_tenant_vrfs(apic_url, session, tenants):
@@ -104,7 +108,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Manage Cisco ACI.")
     parser.add_argument("action", help="Define action to take", choices=[
         "get_tenant_vrfs", "get_tenants_complete_info", "get_tenants",
-        "xml_to_json"])
+        "xml_to_json", "xml_to_yaml"])
     parser.add_argument(
         "--apicPassword", help="APIC Password", default="ciscopsdt")
     parser.add_argument("--apicUrl", help="APIC Url",
@@ -119,7 +123,14 @@ def xml_to_json(args):
     """Convert XML to JSON."""
     with open(args.xmlFile) as fd:
         __doc = xmltodict.parse(fd.read(), attr_prefix="")
-        print(json.dumps(__doc, indent=2))
+        if args.action == "xml_to_json":
+            print(json.dumps(__doc, indent=2))
+        return __doc
+
+
+def xml_to_yaml(__doc):
+    """Convert XML to YAML."""
+    print(yaml.dump(yaml.load(json.dumps(__doc)), default_flow_style=False))
 
 
 if __name__ == "__main__":
