@@ -25,10 +25,33 @@ def create_credentials(apic_user, apic_password):
 
 def decide_action(apic_url, session, args):
     """Decide action to take."""
+    if args.action == "get_tenant_vrfs":
+        tenants = get_tenants(apic_url, session, args)
+        get_tenant_vrfs(apic_url, session, tenants)
     if args.action == "get_tenants":
-        get_tenants(apic_url, session)
+        get_tenants(apic_url, session, args)
     if args.action == "get_tenants_complete_info":
         get_tenants_complete_info(apic_url, session)
+
+
+def get_tenant_vrfs(apic_url, session, tenants):
+    """Get tenant VRFs."""
+    __tenants = []
+    for tenant in tenants['imdata']:
+        __tenant_vrf = {}
+        __tenant = tenant['fvTenant']['attributes']
+        get_response = session.get(
+            apic_url + "node/mo/" + __tenant['dn'] +
+            ".json?query-target=children&target-subtree-class=fvCtx",
+            verify=False)
+        python_data = json.loads(get_response.text)
+        for _vrf in python_data['imdata']:
+            if _vrf['fvCtx']:
+                __vrf = _vrf['fvCtx']['attributes']['name']
+                __tenant_vrf.update(
+                    {"tenant": __tenant['name'], "vrf": __vrf})
+                __tenants.append(__tenant_vrf)
+    print(json.dumps(__tenants, indent=4))
 
 
 def get_tenants_complete_info(apic_url, session):
@@ -39,11 +62,13 @@ def get_tenants_complete_info(apic_url, session):
     print(json.dumps(tenants, indent=4))
 
 
-def get_tenants(apic_url, session):
+def get_tenants(apic_url, session, args):
     """Get tenants."""
     get_response = session.get(apic_url + "class/fvTenant.json", verify=False)
     tenants = json.loads(get_response.text)
-    print(json.dumps(tenants, indent=4))
+    if args.action == "get_tenants":
+        print(json.dumps(tenants, indent=4))
+    return tenants
 
 
 def login(apic_url, session, json_credentials):
@@ -71,7 +96,7 @@ def parse_args():
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(description="Manage Cisco ACI.")
     parser.add_argument("action", help="Define action to take", choices=[
-        "get_tenants_complete_info", "get_tenants"])
+        "get_tenant_vrfs", "get_tenants_complete_info", "get_tenants"])
     parser.add_argument(
         "--apicPassword", help="APIC Password", default="ciscopsdt")
     parser.add_argument("--apicUrl", help="APIC Url",
