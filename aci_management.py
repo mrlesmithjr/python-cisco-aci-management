@@ -5,6 +5,7 @@
 import argparse
 import json
 import requests
+import xmltodict
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -32,6 +33,8 @@ def decide_action(apic_url, session, args):
         get_tenants(apic_url, session, args)
     if args.action == "get_tenants_complete_info":
         get_tenants_complete_info(apic_url, session)
+    if args.action == "xml_to_json":
+        xml_to_json(args)
 
 
 def get_tenant_vrfs(apic_url, session, tenants):
@@ -100,14 +103,23 @@ def parse_args():
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(description="Manage Cisco ACI.")
     parser.add_argument("action", help="Define action to take", choices=[
-        "get_tenant_vrfs", "get_tenants_complete_info", "get_tenants"])
+        "get_tenant_vrfs", "get_tenants_complete_info", "get_tenants",
+        "xml_to_json"])
     parser.add_argument(
         "--apicPassword", help="APIC Password", default="ciscopsdt")
     parser.add_argument("--apicUrl", help="APIC Url",
                         default="https://sandboxapicdc.cisco.com")
     parser.add_argument("--apicUser", help="APIC User", default="admin")
+    parser.add_argument("--xmlFile", help="XML file to parse")
     args = parser.parse_args()
     return args
+
+
+def xml_to_json(args):
+    """Convert XML to JSON."""
+    with open(args.xmlFile) as fd:
+        __doc = xmltodict.parse(fd.read(), attr_prefix="")
+        print(json.dumps(__doc, indent=2))
 
 
 if __name__ == "__main__":
